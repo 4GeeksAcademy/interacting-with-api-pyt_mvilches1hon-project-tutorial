@@ -3,8 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 import seaborn as sns
-import spotipy
-import spotipy as spotify
 
 
 # load the .env file variables
@@ -17,20 +15,30 @@ print(f'El ID es: {client_id}')
 
 
 # Get credential values
-client_id = os.environ.get("CLIENT_ID")
-client_secret = os.environ.get("CLIENT_SECRET")
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+
+auth_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
+spotify = spotipy.Spotify(auth_manager=auth_manager)
 
 id_artista = '5YGY8feqx7naU7z4HrwZM6'
 
-results = spotify.Spotify.artist_top_tracks(spotify.Spotify, artist_id=id_artista)
+results = spotify.artist_top_tracks(artist_id=id_artista)
 canciones = []
 
 for track in results['tracks']:
     canciones.append(
         {'name':track['name'],
-        'popularity' : track['popularity']}
+        'popularity' : track['popularity'],
+        'duration_min': track['duration_ms'] / 60000}
     )
 
+tracks_df = pd.DataFrame(canciones)
 
+print(tracks_df.head(3))
 
-print(track)
+plt.scatter(tracks_df['duration_min'], tracks_df['popularity'])
+plt.xlabel('Duration (minutes)')
+plt.ylabel('Popularity')
+plt.title('Relationship between duration and popularity')
+plt.show()
